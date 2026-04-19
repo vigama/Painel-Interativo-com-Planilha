@@ -1,0 +1,1130 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Painel AURA — Gamificado</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#0f1833cc;
+      --stroke:#2b3a74;
+      --text:#e9eeff;
+      --muted:#a9b4e6;
+      --good:#35e08a;
+      --bad:#ff4d6d;
+      --warn:#ffd166;
+      --accent:#7c5cff;
+      --shadow: 0 18px 60px rgba(0,0,0,.45);
+      --radius: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 30% 10%, rgba(124,92,255,.35), transparent 60%),
+        radial-gradient(900px 500px at 90% 20%, rgba(53,224,138,.25), transparent 60%),
+        radial-gradient(900px 600px at 30% 90%, rgba(255,77,109,.18), transparent 60%),
+        linear-gradient(180deg, #070a14, #0b1020);
+      min-height:100vh;
+      overflow-x:hidden;
+    }
+
+    /* Top HUD */
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, rgba(11,16,32,.92), rgba(11,16,32,.55));
+      border-bottom: 1px solid rgba(43,58,116,.55);
+    }
+    .hud{
+      max-width:1100px;
+      margin:0 auto;
+      padding:14px 16px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+    }
+    .logo{
+      width:42px;height:42px;border-radius:14px;
+      background: linear-gradient(135deg, rgba(124,92,255,1), rgba(53,224,138,1));
+      box-shadow: var(--shadow);
+      display:grid; place-items:center;
+      font-size:22px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:16px;
+      line-height:1.1;
+      letter-spacing:.2px;
+    }
+    .brand small{
+      color:var(--muted);
+      font-size:12px;
+      display:block;
+      margin-top:2px;
+    }
+
+    .hud-actions{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .btn{
+      border:1px solid rgba(43,58,116,.8);
+      background: linear-gradient(180deg, rgba(15,24,51,.95), rgba(15,24,51,.65));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      transition: transform .08s ease, border-color .2s ease, background .2s ease;
+      font-weight:600;
+      font-size:13px;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(124,92,255,.9); }
+    .btn:active{ transform: translateY(0px) scale(.98); }
+    .btn.good{ border-color: rgba(53,224,138,.85); }
+    .btn.bad{ border-color: rgba(255,77,109,.85); }
+    .btn.ghost{ background: rgba(15,24,51,.35); }
+
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:18px 16px 80px;
+      display:grid;
+      gap:16px;
+      grid-template-columns: 360px 1fr;
+    }
+    @media (max-width: 980px){
+      main{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid rgba(43,58,116,.55);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .title{
+      padding:14px 16px;
+      border-bottom: 1px solid rgba(43,58,116,.45);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card .title h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .tag{
+      font-family:var(--mono);
+      font-size:11px;
+      color:var(--muted);
+      padding:6px 10px;
+      border:1px solid rgba(43,58,116,.55);
+      border-radius:999px;
+      background: rgba(7,10,20,.35);
+      white-space:nowrap;
+    }
+
+    .content{ padding:14px 16px; }
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin:10px 0 6px;
+    }
+    input, select{
+      width:100%;
+      padding:11px 12px;
+      border-radius:14px;
+      border:1px solid rgba(43,58,116,.7);
+      background: rgba(7,10,20,.35);
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    input:focus, select:focus{
+      border-color: rgba(124,92,255,.95);
+      box-shadow: 0 0 0 3px rgba(124,92,255,.18);
+    }
+
+    .row{ display:flex; gap:10px; }
+    .row > *{ flex:1; }
+    .mini{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+      margin-top:10px;
+    }
+    .divider{
+      height:1px;
+      background: rgba(43,58,116,.45);
+      margin:12px 0;
+    }
+
+    /* Player panel */
+    .player{
+      display:grid;
+      gap:12px;
+    }
+    .player-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .player-name{
+      font-size:18px;
+      font-weight:800;
+      margin:0;
+      letter-spacing:.2px;
+    }
+    .player-meta{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:4px;
+    }
+    .statbox{
+      text-align:right;
+    }
+    .points{
+      font-family:var(--mono);
+      font-size:22px;
+      font-weight:800;
+    }
+    .maxpoints{
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .hearts{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .heart{
+      width:42px;
+      height:38px;
+      position:relative;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,.25));
+      transform: translateZ(0);
+    }
+    .heart svg{
+      width:42px; height:38px;
+      display:block;
+    }
+    .heart .fill{
+      position:absolute;
+      inset:0;
+      clip-path: path("M21 36s-10.7-7.2-16.5-13C.3 18.8 0 14.3 2.6 11.6 5.3 9 9.6 9.2 12.4 12c1.1 1.1 1.9 2.5 2.3 4 .4-1.5 1.2-2.9 2.3-4C20.9 9.2 25.2 9 27.9 11.6c2.6 2.7 2.3 7.2-1 11.4C31.7 28.8 21 36 21 36z");
+      background: linear-gradient(180deg, rgba(255,77,109,1), rgba(255,211,107,1));
+      width:0%;
+      transition: width .25s ease;
+    }
+    .heart .outline{
+      position:absolute; inset:0;
+      opacity:.9;
+    }
+    .heart.empty{ opacity:.25; filter:none; }
+
+    .message{
+      padding:12px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(43,58,116,.6);
+      background: rgba(7,10,20,.35);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .message strong{ font-size:13px; }
+    .message span{ color:var(--muted); font-size:12px; }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    .controls .btn{ flex:0 0 auto; }
+    .controls .wide{ flex: 1 1 260px; min-width:240px; }
+    .controls .wide select{ width:100%; }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      overflow:hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(43,58,116,.5);
+      background: rgba(7,10,20,.25);
+    }
+    th, td{
+      padding:10px 10px;
+      font-size:12px;
+      border-bottom: 1px solid rgba(43,58,116,.35);
+      vertical-align:top;
+    }
+    th{
+      text-align:left;
+      color:var(--muted);
+      font-weight:700;
+      background: rgba(15,24,51,.55);
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+    tr:last-child td{ border-bottom:none; }
+    .delta.plus{ color: var(--good); font-weight:800; }
+    .delta.minus{ color: var(--bad); font-weight:800; }
+    .chip{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      padding:6px 10px;
+      border-radius: 999px;
+      background: rgba(15,24,51,.45);
+      border: 1px solid rgba(43,58,116,.55);
+      color: var(--text);
+      font-size:11px;
+      white-space:nowrap;
+    }
+    .right{ text-align:right; }
+    .small{ font-size:11px; color:var(--muted); }
+
+    /* Confetti canvas */
+    #confetti{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:999;
+      display:none;
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      z-index:1000;
+      padding:12px 14px;
+      border-radius: 18px;
+      background: rgba(15,24,51,.92);
+      border:1px solid rgba(43,58,116,.65);
+      box-shadow: var(--shadow);
+      color:var(--text);
+      font-size:13px;
+      max-width:min(420px, calc(100vw - 32px));
+      display:none;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="confetti"></canvas>
+
+  <header>
+    <div class="hud">
+      <div class="brand">
+        <div class="logo">🎮</div>
+        <div>
+          <h1>Painel <span style="color:var(--warn)">AURA</span> — Vidas & Pontos</h1>
+          <small>Gamificação com ❤️ + som + histórico (salvo no computador)</small>
+        </div>
+      </div>
+
+      <div class="hud-actions">
+        <button class="btn ghost" id="exportBtn">💾 Exportar backup</button>
+        <button class="btn ghost" id="importBackupBtn">📥 Importar backup</button>
+        <button class="btn ghost" id="resetAllBtn">🧨 Zerar tudo</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left: Cadastro / Lista -->
+    <section class="card">
+      <div class="title">
+        <h2>Cadastro & Turmas</h2>
+        <span class="tag">localStorage ✅</span>
+      </div>
+      <div class="content">
+        <label>Selecionar aluno (salvo)</label>
+        <select id="studentSelect"></select>
+
+        <div class="divider"></div>
+
+        <h3 style="margin:0 0 10px; font-size:13px;">➕ Novo aluno</h3>
+        <label>Nome do aluno</label>
+        <input id="nome" placeholder="Ex.: Ana Clara" />
+
+        <div class="row">
+          <div>
+            <label>Série</label>
+            <select id="serie">
+              <option value="6º ano">6º ano</option>
+              <option value="7º ano">7º ano</option>
+              <option value="8º ano">8º ano</option>
+              <option value="9º ano">9º ano</option>
+            </select>
+          </div>
+          <div>
+            <label>Turma</label>
+            <input id="turma" placeholder="Ex.: A / B / C" />
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+          <button class="btn good" id="addStudentBtn">✅ Cadastrar</button>
+          <button class="btn bad" id="deleteStudentBtn">🗑️ Excluir</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3 style="margin:0 0 10px; font-size:13px;">📄 Importar lista (CSV)</h3>
+        <div class="mini">
+          Exporte do Excel como <b>CSV</b> (Arquivo → Salvar como → CSV).<br/>
+          O CSV pode ter cabeçalhos tipo <span class="chip">ALUNO</span> <span class="chip">TURMA</span> <span class="chip">SERIEANO</span> (ou <span class="chip">SÉRIE</span>).<br/>
+          Tudo fica salvo <b>só no seu computador</b>.
+        </div>
+        <label>Escolher CSV</label>
+        <input type="file" id="csvFile" accept=".csv,text/csv" />
+
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+          <button class="btn ghost" id="importCsvBtn">📥 Importar CSV</button>
+          <button class="btn ghost" id="clearHistoryBtn">🧹 Limpar histórico do aluno</button>
+        </div>
+
+        <div class="divider"></div>
+        <div class="mini">
+          🎯 <b>Regras:</b> +10 por atividade entregue • -2,5 por ocorrência • 1 ❤️ = 10 pontos • Máx = 50 pontos.<br/>
+          🎓 <b>Bônus na média:</b> 5 ❤️ = +1,00 • 3 ❤️ = +0,70 • 0 ❤️ = 0,00
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Painel do aluno -->
+    <section class="card">
+      <div class="title">
+        <h2>Painel Game do Aluno</h2>
+        <span class="tag" id="autosaveTag">auto-save 🔄</span>
+      </div>
+
+      <div class="content player">
+        <div class="player-top">
+          <div>
+            <p class="player-name" id="pName">Nenhum aluno selecionado 😴</p>
+            <div class="player-meta" id="pMeta">Cadastre ou importe um aluno para começar.</div>
+          </div>
+          <div class="statbox">
+            <div class="points" id="pPoints">—</div>
+            <div class="maxpoints" id="pMax">/ 50 AURA</div>
+          </div>
+        </div>
+
+        <div class="hearts" id="hearts"></div>
+
+        <div class="message" id="messageBox">
+          <div>
+            <strong id="msgTitle">🎒 Dica</strong><br/>
+            <span id="msgText">Selecione um aluno para ver a AURA.</span>
+          </div>
+          <div class="chip" id="bonusChip">🎓 Bônus: —</div>
+        </div>
+
+        <div class="controls">
+          <button class="btn good" id="gain10Btn">✨ Atividade entregue (+10)</button>
+
+          <div class="wide">
+            <label>Ocorrências (perde -2,5)</label>
+            <select id="penaltySelect">
+              <option value="Saiu do seu grupo">🚪 Saiu do seu grupo (-2,5)</option>
+              <option value="Não trouxe material">📚 Não trouxe material (-2,5)</option>
+              <option value="Não fez a tarefa proposta">📝 Não fez a tarefa proposta (-2,5)</option>
+              <option value="Não participou das atividades em grupo">🤝 Não participou das atividades em grupo (-2,5)</option>
+              <option value="Desrespeitou o colega">😤 Desrespeitou o colega (-2,5)</option>
+            </select>
+          </div>
+
+          <button class="btn bad" id="applyPenaltyBtn">💥 Aplicar (-2,5)</button>
+          <button class="btn ghost" id="healBtn">💖 Curar (+2,5)</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
+          <div>
+            <h3 style="margin:0; font-size:13px;">📊 Histórico de Pontos (Ganhos & Perdas)</h3>
+            <div class="small">Cada ação fica registrada com data/hora + emoji + saldo final.</div>
+          </div>
+          <div class="chip" id="heartCountChip">❤️ 0/5</div>
+        </div>
+
+        <div style="max-height:360px; overflow:auto; border-radius:18px;">
+          <table>
+            <thead>
+              <tr>
+                <th>⏰ Quando</th>
+                <th>🎯 Ação</th>
+                <th class="right">Δ</th>
+                <th class="right">AURA</th>
+                <th class="right">❤️</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody">
+              <tr><td colspan="5" class="small">Nenhuma ação registrada ainda.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <input type="file" id="backupFile" accept="application/json,.json" style="display:none" />
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const STORAGE_KEY = "painelAura_v1";
+
+  const MAX_HEARTS = 5;
+  const POINTS_PER_HEART = 10;
+  const MAX_POINTS = MAX_HEARTS * POINTS_PER_HEART;
+
+  const START_POINTS = MAX_POINTS; // AURA máxima inicial (5 corações cheios)
+
+  // Ações
+  const GAIN_ACTIVITY = { label: "Atividade entregue", delta: +10, emoji: "✨" };
+  const HEAL = { label: "Curar", delta: +2.5, emoji: "💖" };
+
+  // Bônus na média (pode ajustar)
+  const gradeBonusByHearts = (hearts) => {
+    if (hearts >= 5) return 1.00;
+    if (hearts === 4) return 0.85;
+    if (hearts === 3) return 0.70;
+    if (hearts === 2) return 0.40;
+    if (hearts === 1) return 0.20;
+    return 0.00;
+  };
+
+  // DOM
+  const el = (id) => document.getElementById(id);
+
+  const studentSelect = el("studentSelect");
+  const nome = el("nome");
+  const serie = el("serie");
+  const turma = el("turma");
+
+  const addStudentBtn = el("addStudentBtn");
+  const deleteStudentBtn = el("deleteStudentBtn");
+
+  const pName = el("pName");
+  const pMeta = el("pMeta");
+  const pPoints = el("pPoints");
+  const heartsWrap = el("hearts");
+  const msgTitle = el("msgTitle");
+  const msgText = el("msgText");
+  const bonusChip = el("bonusChip");
+  const historyBody = el("historyBody");
+  const heartCountChip = el("heartCountChip");
+
+  const gain10Btn = el("gain10Btn");
+  const penaltySelect = el("penaltySelect");
+  const applyPenaltyBtn = el("applyPenaltyBtn");
+  const healBtn = el("healBtn");
+  const clearHistoryBtn = el("clearHistoryBtn");
+
+  const exportBtn = el("exportBtn");
+  const importBackupBtn = el("importBackupBtn");
+  const resetAllBtn = el("resetAllBtn");
+  const backupFile = el("backupFile");
+
+  const csvFile = el("csvFile");
+  const importCsvBtn = el("importCsvBtn");
+
+  const toast = el("toast");
+
+  // Confetti
+  const confettiCanvas = el("confetti");
+  const ctx = confettiCanvas.getContext("2d");
+
+  // State
+  let state = loadState();
+  let selectedId = state.selectedId || null;
+
+  // ---- Persistence ----
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return { students: [], selectedId: null };
+      const parsed = JSON.parse(raw);
+      if(!parsed.students) parsed.students = [];
+      return parsed;
+    }catch{
+      return { students: [], selectedId: null };
+    }
+  }
+  function saveState(){
+    state.selectedId = selectedId;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    flashAutosave();
+  }
+  function flashAutosave(){
+    const tag = el("autosaveTag");
+    tag.textContent = "auto-save ✅";
+    setTimeout(() => tag.textContent = "auto-save 🔄", 700);
+  }
+
+  // ---- Utils ----
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  const nowStr = () => new Date().toLocaleString("pt-BR");
+
+  function uid(){
+    return "aura_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+  }
+
+  function getStudent(){
+    return state.students.find(s => s.id === selectedId) || null;
+  }
+
+  // hearts count for logic (0..5)
+  function heartsCount(points){
+    if(points <= 0) return 0;
+    return Math.ceil(points / POINTS_PER_HEART);
+  }
+
+  // ---- Sound (WebAudio) ----
+  let audioCtx = null;
+  function beep(type){
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const t0 = audioCtx.currentTime;
+
+      const o1 = audioCtx.createOscillator();
+      const g1 = audioCtx.createGain();
+
+      o1.type = "sine";
+      // Diferentes sons: gain / loss
+      const isGood = (type === "good");
+      const isBad = (type === "bad");
+
+      const freq = isGood ? 880 : isBad ? 220 : 440;
+      o1.frequency.setValueAtTime(freq, t0);
+      o1.frequency.exponentialRampToValueAtTime(isGood ? 1320 : 140, t0 + 0.14);
+
+      g1.gain.setValueAtTime(0.001, t0);
+      g1.gain.exponentialRampToValueAtTime(0.22, t0 + 0.02);
+      g1.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18);
+
+      o1.connect(g1);
+      g1.connect(audioCtx.destination);
+
+      o1.start(t0);
+      o1.stop(t0 + 0.19);
+    }catch{}
+  }
+
+  // ---- Confetti ----
+  let confettiParticles = [];
+  let confettiRAF = null;
+
+  function resizeConfetti(){
+    confettiCanvas.width = window.innerWidth * devicePixelRatio;
+    confettiCanvas.height = window.innerHeight * devicePixelRatio;
+  }
+  window.addEventListener("resize", resizeConfetti);
+  resizeConfetti();
+
+  function startConfetti(){
+    confettiCanvas.style.display = "block";
+    confettiParticles = [];
+    const colors = ["#7c5cff", "#35e08a", "#ffd166", "#ff4d6d", "#5bd0ff"];
+    const count = 180;
+
+    for(let i=0;i<count;i++){
+      confettiParticles.push({
+        x: Math.random() * confettiCanvas.width,
+        y: -Math.random() * confettiCanvas.height * 0.3,
+        vx: (Math.random()-0.5) * 3.2 * devicePixelRatio,
+        vy: (2 + Math.random()*4.2) * devicePixelRatio,
+        rot: Math.random()*Math.PI,
+        vr: (Math.random()-0.5) * 0.25,
+        size: (6 + Math.random()*10) * devicePixelRatio,
+        color: colors[(Math.random()*colors.length)|0],
+        life: 250 + (Math.random()*120|0)
+      });
+    }
+
+    let frames = 0;
+    cancelAnimationFrame(confettiRAF);
+    const tick = () => {
+      frames++;
+      ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+
+      confettiParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+        p.vy += 0.03 * devicePixelRatio; // gravity
+        p.life--;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+        ctx.restore();
+      });
+
+      confettiParticles = confettiParticles.filter(p => p.life > 0 && p.y < confettiCanvas.height + 80*devicePixelRatio);
+
+      if(confettiParticles.length > 0 && frames < 360){
+        confettiRAF = requestAnimationFrame(tick);
+      }else{
+        stopConfetti();
+      }
+    };
+    tick();
+  }
+  function stopConfetti(){
+    confettiCanvas.style.display = "none";
+    ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
+    confettiParticles = [];
+    cancelAnimationFrame(confettiRAF);
+  }
+
+  // ---- Toast ----
+  let toastTimer = null;
+  function showToast(text){
+    toast.textContent = text;
+    toast.style.display = "block";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> toast.style.display = "none", 2200);
+  }
+
+  // ---- UI Rendering ----
+  function renderStudentSelect(){
+    const opts = [];
+    if(state.students.length === 0){
+      opts.push(`<option value="">(Nenhum aluno cadastrado)</option>`);
+    }else{
+      opts.push(`<option value="">(Selecionar...)</option>`);
+      state.students
+        .slice()
+        .sort((a,b)=> (a.serie+a.turma+a.nome).localeCompare(b.serie+b.turma+b.nome, "pt-BR"))
+        .forEach(s => {
+          const label = `${s.nome} — ${s.serie} ${s.turma ? ("("+s.turma+")") : ""}`;
+          opts.push(`<option value="${s.id}">${escapeHtml(label)}</option>`);
+        });
+    }
+    studentSelect.innerHTML = opts.join("");
+    studentSelect.value = selectedId || "";
+  }
+
+  function renderPlayer(){
+    const s = getStudent();
+    if(!s){
+      pName.textContent = "Nenhum aluno selecionado 😴";
+      pMeta.textContent = "Cadastre ou importe um aluno para começar.";
+      pPoints.textContent = "—";
+      heartsWrap.innerHTML = "";
+      msgTitle.textContent = "🎒 Dica";
+      msgText.textContent = "Selecione um aluno para ver a AURA.";
+      bonusChip.textContent = "🎓 Bônus: —";
+      heartCountChip.textContent = "❤️ 0/5";
+      historyBody.innerHTML = `<tr><td colspan="5" class="small">Nenhuma ação registrada ainda.</td></tr>`;
+      return;
+    }
+
+    pName.textContent = s.nome + " " + (s.emoji || "🧠");
+    pMeta.textContent = `Série: ${s.serie} • Turma: ${s.turma || "—"} • ID: ${s.id.slice(-6)}`;
+
+    const pts = s.pontos;
+    pPoints.textContent = pts.toFixed(1).replace(".", ",") + " AURA";
+    const hCount = heartsCount(pts);
+    heartCountChip.textContent = `❤️ ${hCount}/${MAX_HEARTS}`;
+
+    // Bonus
+    const bonus = gradeBonusByHearts(hCount);
+    bonusChip.textContent = `🎓 Bônus: +${bonus.toFixed(2).replace(".", ",")}`;
+
+    // Hearts UI (5 slots, with partial fill)
+    heartsWrap.innerHTML = "";
+    for(let i=0;i<MAX_HEARTS;i++){
+      const start = i * POINTS_PER_HEART;
+      const remaining = clamp(pts - start, 0, POINTS_PER_HEART); // 0..10
+      const fillPct = (remaining / POINTS_PER_HEART) * 100;
+
+      const div = document.createElement("div");
+      div.className = "heart" + (remaining <= 0 ? " empty" : "");
+      div.innerHTML = `
+        <div class="fill" style="width:${fillPct}%"></div>
+        <div class="outline">
+          <svg viewBox="0 0 42 38" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M21 36s-10.7-7.2-16.5-13C.3 18.8 0 14.3 2.6 11.6 5.3 9 9.6 9.2 12.4 12c1.1 1.1 1.9 2.5 2.3 4 .4-1.5 1.2-2.9 2.3-4C20.9 9.2 25.2 9 27.9 11.6c2.6 2.7 2.3 7.2-1 11.4C31.7 28.8 21 36 21 36z"
+              stroke="rgba(233,238,255,.88)" stroke-width="2" fill="rgba(7,10,20,.25)"/>
+          </svg>
+        </div>
+      `;
+      heartsWrap.appendChild(div);
+    }
+
+    // Message logic
+    if(pts >= MAX_POINTS){
+      msgTitle.textContent = "🏆 VOCÊ TEM AURA MÁXIMA!";
+      msgText.textContent = "Parabéns! Você irá receber um Bônus!";
+    }else if(pts <= 0){
+      msgTitle.textContent = "💀 Game Over!";
+      msgText.textContent = "Você perdeu toda AURA!";
+    }else if(pts <= MAX_POINTS/2){
+      msgTitle.textContent = "⚠️ AURA baixa!";
+      msgText.textContent = "Atenção! Você está com metade dos pontos ou menos!";
+    }else{
+      msgTitle.textContent = "🚀 Continue!";
+      msgText.textContent = "Você está indo bem — mantenha a AURA e pegue recompensas!";
+    }
+
+    // History
+    if(!s.historico || s.historico.length === 0){
+      historyBody.innerHTML = `<tr><td colspan="5" class="small">Nenhuma ação registrada ainda.</td></tr>`;
+    }else{
+      historyBody.innerHTML = s.historico
+        .slice()
+        .reverse()
+        .map(h => {
+          const dClass = h.delta >= 0 ? "plus" : "minus";
+          const deltaStr = (h.delta >= 0 ? "+" : "") + h.delta.toFixed(1).replace(".", ",");
+          return `
+            <tr>
+              <td>${escapeHtml(h.quando)}</td>
+              <td><span class="chip">${h.emoji || "🎯"} ${escapeHtml(h.acao)}</span></td>
+              <td class="right delta ${dClass}">${deltaStr}</td>
+              <td class="right">${h.pontos.toFixed(1).replace(".", ",")}</td>
+              <td class="right">${h.coracoes}/${MAX_HEARTS}</td>
+            </tr>
+          `;
+        }).join("");
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;").replaceAll("<","&lt;")
+      .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // ---- Actions ----
+  function addStudent(){
+    const n = nome.value.trim();
+    const se = serie.value;
+    const tu = turma.value.trim();
+
+    if(!n){
+      showToast("Digite o nome do aluno 🙂");
+      return;
+    }
+
+    const s = {
+      id: uid(),
+      nome: n,
+      serie: se,
+      turma: tu,
+      pontos: START_POINTS,
+      emoji: pickEmoji(),
+      historico: [{
+        quando: nowStr(),
+        acao: "Início da AURA",
+        delta: 0,
+        pontos: START_POINTS,
+        coracoes: heartsCount(START_POINTS),
+        emoji: "🎮"
+      }]
+    };
+
+    state.students.push(s);
+    selectedId = s.id;
+
+    nome.value = "";
+    turma.value = "";
+
+    saveState();
+    renderStudentSelect();
+    renderPlayer();
+
+    // Aura máxima inicial -> confetti e som de vitória
+    beep("good");
+    startConfetti();
+    showToast("Aluno cadastrado com AURA MÁXIMA! 🎉");
+  }
+
+  function deleteStudent(){
+    const s = getStudent();
+    if(!s){ showToast("Selecione um aluno para excluir."); return; }
+    const idx = state.students.findIndex(x => x.id === s.id);
+    if(idx >= 0){
+      state.students.splice(idx, 1);
+      selectedId = state.students[0]?.id || null;
+      saveState();
+      renderStudentSelect();
+      renderPlayer();
+      showToast("Aluno removido 🗑️");
+    }
+  }
+
+  function applyDelta(action){
+    const s = getStudent();
+    if(!s){ showToast("Selecione um aluno primeiro 🙂"); return; }
+
+    const prevPoints = s.pontos;
+    const prevHearts = heartsCount(prevPoints);
+
+    let nextPoints = clamp(prevPoints + action.delta, 0, MAX_POINTS);
+    s.pontos = nextPoints;
+
+    const nextHearts = heartsCount(nextPoints);
+    const crossedDown = nextHearts < prevHearts;
+    const crossedUp = nextHearts > prevHearts;
+
+    // registro
+    s.historico = s.historico || [];
+    s.historico.push({
+      quando: nowStr(),
+      acao: action.label,
+      delta: action.delta,
+      pontos: nextPoints,
+      coracoes: nextHearts,
+      emoji: action.emoji || "🎯"
+    });
+
+    saveState();
+    renderPlayer();
+
+    // Som conforme ganhou/perdeu coração
+    if(crossedDown) beep("bad");
+    else if(crossedUp) beep("good");
+    else beep(action.delta >= 0 ? "good" : "bad");
+
+    // Confetti quando AURA máxima
+    if(nextPoints >= MAX_POINTS){
+      startConfetti();
+      showToast("VOCÊ TEM AURA MÁXIMA! 🎉");
+    }
+
+    // Game over feedback
+    if(nextPoints <= 0){
+      showToast("Game Over! 💀");
+    }
+  }
+
+  function pickEmoji(){
+    const pool = ["🧠","🔥","⚡","🦾","🧩","🎯","🚀","🗿","🌟","🎧","📚","🕹️"];
+    return pool[(Math.random()*pool.length)|0];
+  }
+
+  // ---- CSV Import ----
+  function parseCsv(text){
+    // Aceita ; ou , (auto-detect)
+    const lines = text.split(/\r?\n/).filter(l => l.trim().length);
+    if(lines.length < 2) return [];
+
+    const delimiter = (lines[0].includes(";") && !lines[0].includes(",")) ? ";" : (lines[0].split(";").length > lines[0].split(",").length ? ";" : ",");
+    const headers = lines[0].split(delimiter).map(h => h.trim().toUpperCase());
+
+    const idxName = headers.findIndex(h => ["ALUNO","NOME","NOME DO ALUNO","ESTUDANTE"].includes(h));
+    const idxSerie = headers.findIndex(h => ["SERIEANO","SÉRIE","SERIE","ANO","SÉRIE/ANO"].includes(h));
+    const idxTurma = headers.findIndex(h => ["TURMA","CLASSE","GRUPO"].includes(h));
+
+    const out = [];
+    for(let i=1;i<lines.length;i++){
+      const cols = lines[i].split(delimiter).map(c => c.trim()).filter((_,k)=>true);
+      const n = cols[idxName] || "";
+      if(!n) continue;
+      const se = cols[idxSerie] || inferSerieFromTurma(cols[idxTurma] || "");
+      const tu = cols[idxTurma] || "";
+      out.push({ nome: n, serie: normalizeSerie(se), turma: tu });
+    }
+    return out;
+  }
+
+  function normalizeSerie(s){
+    const t = String(s || "").trim();
+    // tenta mapear "6" -> "6º ano", "EF6" -> "6º ano"
+    const m = t.match(/(6|7|8|9)/);
+    if(m) return `${m[1]}º ano`;
+    if(["6º ano","7º ano","8º ano","9º ano"].includes(t)) return t;
+    return t || "6º ano";
+  }
+  function inferSerieFromTurma(turma){
+    const t = String(turma||"").toUpperCase();
+    const m = t.match(/EF\s*(6|7|8|9)/);
+    if(m) return `${m[1]}º ano`;
+    return "";
+  }
+
+  async function importCsv(){
+    const file = csvFile.files?.[0];
+    if(!file){ showToast("Escolha um CSV primeiro 🙂"); return; }
+    const text = await file.text();
+    const rows = parseCsv(text);
+    if(rows.length === 0){
+      showToast("Não consegui ler alunos no CSV 😕");
+      return;
+    }
+
+    // criar alunos com AURA inicial
+    rows.forEach(r => {
+      // evita duplicar por mesmo nome+série+turma
+      const exists = state.students.some(s => s.nome === r.nome && s.serie === r.serie && (s.turma||"") === (r.turma||""));
+      if(exists) return;
+
+      state.students.push({
+        id: uid(),
+        nome: r.nome,
+        serie: r.serie || "6º ano",
+        turma: r.turma || "",
+        pontos: START_POINTS,
+        emoji: pickEmoji(),
+        historico: [{
+          quando: nowStr(),
+          acao: "Importado (AURA inicial)",
+          delta: 0,
+          pontos: START_POINTS,
+          coracoes: heartsCount(START_POINTS),
+          emoji: "📥"
+        }]
+      });
+    });
+
+    selectedId = state.students[state.students.length - 1]?.id || selectedId;
+
+    saveState();
+    renderStudentSelect();
+    renderPlayer();
+    beep("good");
+    startConfetti();
+    showToast(`Importação concluída! +${rows.length} alunos 🎉`);
+  }
+
+  // ---- Backup (JSON) ----
+  function exportBackup(){
+    const data = JSON.stringify(state, null, 2);
+    const blob = new Blob([data], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "backup_painel_aura.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast("Backup exportado 💾");
+  }
+
+  function importBackup(){
+    backupFile.click();
+  }
+
+  backupFile.addEventListener("change", async () => {
+    const f = backupFile.files?.[0];
+    if(!f) return;
+    const text = await f.text();
+    try{
+      const parsed = JSON.parse(text);
+      if(!parsed.students) throw new Error("Formato inválido");
+      state = parsed;
+      selectedId = state.selectedId || state.students[0]?.id || null;
+      saveState();
+      renderStudentSelect();
+      renderPlayer();
+      beep("good");
+      showToast("Backup importado ✅");
+    }catch{
+      showToast("Arquivo de backup inválido 😕");
+    }finally{
+      backupFile.value = "";
+    }
+  });
+
+  function resetAll(){
+    if(!confirm("Tem certeza? Isso apaga TODOS os alunos e pontuações.")) return;
+    state = { students: [], selectedId: null };
+    selectedId = null;
+    saveState();
+    renderStudentSelect();
+    renderPlayer();
+    stopConfetti();
+    showToast("Tudo zerado 🧨");
+  }
+
+  function clearHistory(){
+    const s = getStudent();
+    if(!s){ showToast("Selecione um aluno 🙂"); return; }
+    if(!confirm("Limpar o histórico deste aluno? (AURA atual será mantida)")) return;
+    s.historico = [{
+      quando: nowStr(),
+      acao: "Histórico limpo",
+      delta: 0,
+      pontos: s.pontos,
+      coracoes: heartsCount(s.pontos),
+      emoji: "🧹"
+    }];
+    saveState();
+    renderPlayer();
+    showToast("Histórico limpo 🧹");
+  }
+
+  // ---- Events ----
+  addStudentBtn.addEventListener("click", addStudent);
+  deleteStudentBtn.addEventListener("click", deleteStudent);
+
+  studentSelect.addEventListener("change", () => {
+    selectedId = studentSelect.value || null;
+    saveState();
+    renderPlayer();
+  });
+
+  gain10Btn.addEventListener("click", () => applyDelta(GAIN_ACTIVITY));
+
+  applyPenaltyBtn.addEventListener("click", () => {
+    const label = penaltySelect.value;
+    applyDelta({ label, delta: -2.5, emoji: label.includes("Desrespeitou") ? "😤" : "💥" });
+  });
+
+  healBtn.addEventListener("click", () => applyDelta(HEAL));
+
+  clearHistoryBtn.addEventListener("click", clearHistory);
+
+  exportBtn.addEventListener("click", exportBackup);
+  importBackupBtn.addEventListener("click", importBackup);
+  resetAllBtn.addEventListener("click", resetAll);
+
+  importCsvBtn.addEventListener("click", importCsv);
+
+  // ---- Init ----
+  renderStudentSelect();
+  if(!selectedId && state.students[0]) selectedId = state.students[0].id;
+  renderStudentSelect();
+  renderPlayer();
+
+})();
+</script>
+</body>
+</html>
